@@ -139,7 +139,7 @@ public class CommonSuffixLength extends Feature<Attribute>{
 	public String toString() {
 		String result;
 		
-		result = String.format("Average common suffix length for class %s", className);
+		result = String.format("Dynamic-Average common suffix length for class %s", className);
 		
 		return result;
 	}

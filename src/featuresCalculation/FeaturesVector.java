@@ -1,11 +1,6 @@
 package featuresCalculation;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.util.*;
 
 public class FeaturesVector {
 	
@@ -85,12 +80,19 @@ public class FeaturesVector {
 	
 	public List<String> getRawValues() {
 		List<String> result;
-		String value;
+		Object value;
 		
 		result = new ArrayList<String>();
 		for (FeatureValue featureValue : getFeatureValues().values()) {
-			value = Double.toString(featureValue.getValue());
-			result.add(value);
+			value = featureValue.getValue();
+			if (value instanceof Map){
+				for (Map.Entry<String, Object> entry:((Map<String, Object>)value).entrySet()) {
+					result.add(entry.getValue().toString());
+				}
+			} else {
+				value = featureValue.getValue();
+				result.add(value.toString());
+			}
 		}
 		
 		if(vectorClass != null) {

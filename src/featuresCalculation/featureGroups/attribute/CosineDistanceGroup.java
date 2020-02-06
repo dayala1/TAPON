@@ -33,6 +33,7 @@ public class CosineDistanceGroup extends FeaturesGroup<Attribute>{
 		}
 		
 		LuceneUtils.prepareVocabulary("value", getIndexPath(), getIndexPath());
+		LuceneUtils.storeIdfMap("E:/model/testsSoruHintBased/idfMap");
 	}
 
 }

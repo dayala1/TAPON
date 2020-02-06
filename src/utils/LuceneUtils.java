@@ -1,13 +1,13 @@
 package utils;
 
-import java.io.IOException;
-import java.io.StringReader;
+import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import featuresCalculation.DatasetFeaturesCalculator;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -46,7 +46,7 @@ public class LuceneUtils {
 		
 		idfMap = Maps.newHashMap();
 		filePath = String.format("%s/%s-vocabulary.csv", folderPath, fieldName);
-		FileUtils.createCSV(filePath);
+		FileUtilsCust.createCSV(filePath);
 		analyzer = new StandardAnalyzer();
 		path = Paths.get(indexPath);
 		directory = FSDirectory.open(path);
@@ -70,6 +70,26 @@ public class LuceneUtils {
             }
         }
         analyzer.close();
+	}
+
+	public static void storeIdfMap(String objectPath) throws IOException {
+		FileOutputStream fileOutputStream;
+		ObjectOutputStream objectOutputStream;
+
+		fileOutputStream = new FileOutputStream(objectPath);
+		objectOutputStream = new ObjectOutputStream(fileOutputStream);
+		objectOutputStream.writeObject(idfMap);
+		objectOutputStream.close();
+	}
+
+	public static void loadIdfMap(String objectPath) throws IOException, ClassNotFoundException {
+		FileInputStream fileInputStream;
+		ObjectInputStream objectInputStream;
+
+		fileInputStream = new FileInputStream(objectPath);
+		objectInputStream = new ObjectInputStream(fileInputStream);
+		idfMap = (Map<String, Double>) objectInputStream.readObject();
+		objectInputStream.close();
 	}
 	
 	public static double[] computeTFIDFVector(String content) throws IOException{

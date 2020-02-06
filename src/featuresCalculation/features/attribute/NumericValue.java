@@ -32,4 +32,12 @@ public class NumericValue extends Feature<Attribute> {
 		return result;
 	}
 
+	@Override
+	public String toString() {
+		String result;
+
+		result = "Numeric value";
+
+		return result;
+	}
 }

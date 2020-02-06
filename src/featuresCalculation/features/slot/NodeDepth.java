@@ -31,7 +31,7 @@ public class NodeDepth extends Feature<Slot>{
 			assert featuresVector != null;
 			featureValuesMap = featuresVector.getFeatureValues();
 			featureValue = featureValuesMap.get(this);
-			parentValue = featureValue.getValue();
+			parentValue = (Double)featureValue.getValue();
 			value = parentValue + 1;
 			
 		}
@@ -42,6 +42,14 @@ public class NodeDepth extends Feature<Slot>{
 		result.setFeaturable(featurable);
 		updateObservers(result);
 		
+		return result;
+	}
+
+	public String toString(){
+		String result;
+
+		result = "Node depth";
+
 		return result;
 	}
 

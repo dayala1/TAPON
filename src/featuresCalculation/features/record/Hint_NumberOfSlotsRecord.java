@@ -54,7 +54,7 @@ public class Hint_NumberOfSlotsRecord extends Feature<Record>{
 	public String toString() {
 		String result;
 		
-		result = String.format("Number of slots with hint %s", className);
+		result = String.format("Number of children slots with label %s", className);
 		
 		return result;
 	}

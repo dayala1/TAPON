@@ -38,4 +38,12 @@ public class NumberOfRecordChildren extends Feature<Record>{
 		
 		return result;
 	}
+
+	public String toString(){
+		String result;
+
+		result = "Number of records among the children";
+
+		return result;
+	}
 }

@@ -158,7 +158,7 @@ public class CosineDistance extends Feature<Attribute>{
 	public String toString() {
 		String result;
 		
-		result = String.format("Average cosine distance for class %s", className);
+		result = String.format("Dynamic-Average cosine distance for class %s", className);
 		
 		return result;
 	}

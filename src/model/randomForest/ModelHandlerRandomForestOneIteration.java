@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -25,6 +26,7 @@ import com.google.gson.stream.JsonWriter;
 import dataset.Dataset;
 import dataset.Record;
 import dataset.Slot;
+import featuresCalculation.ClassesConfiguration;
 import featuresCalculation.DatasetFeaturesCalculator;
 import featuresCalculation.FeaturesGroup;
 import utils.DatasetReader;
@@ -34,7 +36,7 @@ public class ModelHandlerRandomForestOneIteration {
 	public ModelHandlerRandomForestOneIteration() {
 		this.sparkHandler = new SparkHandlerRandomForest();
 		this.folderCount = 0;
-		this.useProbabilities = false;
+		this.useProbabilities = true;
 	}
 	
 	//Properties-----------------------------------------------------
@@ -305,9 +307,7 @@ public class ModelHandlerRandomForestOneIteration {
 		inferedLabels.put(slot.getName(), inferedChild);
 	}
 	
-	public void trainModel(Double fractionTesting, List<Dataset> trainingDatasets) throws Exception {
-		assert fractionTesting != null;
-		assert fractionTesting <= 1.0;
+	public void trainModel(List<Dataset> trainingDatasets, Map<String, String> params) throws Exception {
 		assert this.tablesRootFolder != null;
 		assert this.classifiersRootFolder != null;
 		assert this.featurableFeaturesGroups != null;
@@ -317,6 +317,7 @@ public class ModelHandlerRandomForestOneIteration {
 		
 		File tablesRootFolderFile;
 		File classifiersRootFolderFile;
+		DatasetReader datasetReader;
 		
 		sparkHandler.createNewContext();
 		
@@ -326,20 +327,31 @@ public class ModelHandlerRandomForestOneIteration {
 		firstDatasetFeaturesCalculator.setSlotFeaturesGroups(slotFeaturesGroups);
 		firstDatasetFeaturesCalculator.setFeaturableFeaturesGroups(featurableFeaturesGroups);
 		firstDatasetFeaturesCalculator.setIndexPath(String.format("%s/index", tablesRootFolder));
-		
+
+		datasetReader = new DatasetReader();
+		if(tablesRootFolderFile.exists()) {
+			FileUtils.cleanDirectory(tablesRootFolderFile);
+		}
+		if(classifiersRootFolderFile.exists()){
+			FileUtils.cleanDirectory(classifiersRootFolderFile);
+		}
+
 		tablesRootFolderFile.mkdirs();
 		classifiersRootFolderFile.mkdirs();
 		sparkHandler.setClassesFilePath(String.format("%s/classes.json", tablesRootFolder));
-		
+		setParams(params);
 		try {
 			firstDatasetFeaturesCalculator.initializeClasses(trainingDatasets);
-			firstDatasetFeaturesCalculator.storeClasses(String.format("%s/classes.json", tablesRootFolder));
+			firstDatasetFeaturesCalculator.getClassesConfiguration().store(String.format("%s/classes.json", tablesRootFolder));
+			sparkHandler.setClassesConfiguration(firstDatasetFeaturesCalculator.getClassesConfiguration());
 			firstDatasetFeaturesCalculator.initialize(false);
 			firstDatasetFeaturesCalculator.store(String.format("%s/firstFeaturesCalculator", tablesRootFolder));
 			for (Dataset dataset : trainingDatasets) {
 				firstDatasetFeaturesCalculator.setDataset(dataset);
 				firstDatasetFeaturesCalculator.run(String.format("%s/trainingTablesNoHint", tablesRootFolder), true);
+				System.out.println(String.format("Added dataset %s", dataset));
 			}
+			firstDatasetFeaturesCalculator.closeTablesBuilder();
 		} catch(Exception e) {
 			System.out.println("There was a problem while trying to create the first feature tables: ");
 			e.printStackTrace();
@@ -480,5 +492,14 @@ public class ModelHandlerRandomForestOneIteration {
 				getHintsMap(child, hintsMap);
 			}
 		}
+	}
+
+	private void setParams(Map<String, String> params) {
+		assert sparkHandler != null;
+		assert params != null;
+
+		sparkHandler.setParam("numTrees", Integer.valueOf(params.getOrDefault("numTrees", "20")));
+		sparkHandler.setParam("maxBins", Integer.valueOf(params.getOrDefault("maxBins", "32")));
+		sparkHandler.setParam("maxDepth", Integer.valueOf(params.getOrDefault("maxDepth", "5")));
 	}
 }

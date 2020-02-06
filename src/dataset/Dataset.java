@@ -3,7 +3,9 @@ package dataset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
+
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 
 import featuresCalculation.Featurable;
 
@@ -20,6 +22,7 @@ public class Dataset extends Featurable {
 	//Properties------------------------------------------------------
 	
 	private List<Slot> slots;
+	private String source;
 
 	public List<Slot> getSlots() {
 		List<Slot> result;
@@ -35,6 +38,7 @@ public class Dataset extends Featurable {
 		slots.add(slot);
 		slot.setDataset(this);
 		slot.setRecord(null);
+		slot.setSource(this.source);
 	}
 	
 	public void removeSlot(Slot slot) {
@@ -44,7 +48,15 @@ public class Dataset extends Featurable {
 		slots.remove(slot);
 		slot.setDataset(null);
 	}
-	
+
+	public String getSource() {
+		return source;
+	}
+
+	public void setSource(String source) {
+		this.source = source;
+	}
+
 	//Interface methods------------------------------------------------
 	
 	public boolean contains(Slot slot) {
@@ -55,6 +67,36 @@ public class Dataset extends Featurable {
 		result = slots.contains(slot);
 		
 		return result;
+	}
+	
+	public JSONObject toJSONObject(){
+		JSONObject res;
+		JSONArray children;
+		
+		res = new JSONObject();
+		
+		children = new JSONArray();
+		for (Slot child : this.getSlots()) {
+			children.add(child.getJSONObject());
+		}
+		res.put("children", children);
+		
+		return res;
+	}
+
+	public List<Slot> getAllSlots(){
+		List<Slot> result = new ArrayList<>();
+		for (Slot slot:this.getSlots()) {
+			result.add(slot);
+			if(slot instanceof Record){
+				result.addAll(((Record)slot).getAllSlots());
+			}
+		}
+		return result;
+	}
+
+	public void removeAllSlots(){
+		this.slots = new ArrayList<>();
 	}
 	
 }

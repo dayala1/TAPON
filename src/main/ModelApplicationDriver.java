@@ -1,15 +1,15 @@
 package main;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 import dataset.Dataset;
 import dataset.Record;
 import dataset.Slot;
+import model.ModelHandler;
+import model.logisticRegression.ModelHandlerLogisticRegression;
 import model.randomForest.ModelHandlerRandomForest;
 import utils.ClockMonitor;
 import utils.DatasetReader;
-import utils.FileUtils;
+import utils.FileUtilsCust;
 
 public class ModelApplicationDriver {
 	
@@ -33,65 +33,92 @@ public class ModelApplicationDriver {
 		int testingFoldNumber;
 		Integer numberOfDomains;
 		String datasetsPath;
-		ModelHandlerRandomForest modelHandler;
+		ModelHandler modelHandler;
 		String resultsPath;
-		
+		Boolean useMulticlass;
 		clock = new ClockMonitor();
-		
-		
+
+
 		//MODEL APPLICATION
 		datasetReader = new DatasetReader();
-		trainingDatasets = new ArrayList<Dataset>();
 		testingDatasets = new ArrayList<Dataset>();
 		modelHandler = new ModelHandlerRandomForest();
 		
-		domains = Arrays.copyOfRange(args, 3, args.length);
-		numberOfDomains = domains.length;
-		classifiersTablesRoot = args[0];
-		resultsRoot = args[1];
-		datasetsRoot = args[2];
-		
-		modelHandler.setClassifiersRootFolder(String.format("%s/classifiersAndTables/modelClassifiers/%s-domains", classifiersTablesRoot, numberOfDomains));
-		modelHandler.setTablesRootFolder(String.format("%s/classifiersAndTables/modelTables/%s-domains", classifiersTablesRoot, numberOfDomains));
+		domains = new String[]{"Awards-end-2017-without-abstract-summary"};
+		classifiersTablesRoot = "E:/model/FullResults/9-folds/0/classifiersAndTables";
+		resultsRoot = "E:/model/FullResults/9-folds/0";
+		datasetsRoot = "E:/Documents/US/Tesis/datasets_hidden";
+		useMulticlass = true;
+		Set<Integer> testingDomains = new HashSet<>();
+		testingDomains.add(1);
+		//testingDomains.add(2);
+		//testingDomains.add(3);
+		//testingDomains.add(4);
+		//testingDomains.add(5);
+		//testingDomains.add(6);
+		//testingDomains.add(7);
+		//testingDomains.add(8);
+		//testingDomains.add(9);
+		//testingDomains.add(10);
+
+		System.out.println("Loading model");
+		modelHandler.setClassifiersRootFolder(String.format("%s/modelClassifiers", classifiersTablesRoot));
+		modelHandler.setTablesRootFolder(String.format("%s/modelTables", classifiersTablesRoot));
 		modelHandler.loadFeaturesCalculators();
-		
+		modelHandler.createNewContext();
+		modelHandler.loadClassifiers(false);
+		modelHandler.loadClassifiers(true);
+
+		System.out.println("Loading datasets");
 		for (String domain : domains) {
-			for (int i = 1; i < 11; i++) {
-				datasetsPath = String.format("%s/Datasets/%s/%s",datasetsRoot, domain, i);
-				datasetReader.addDataset(datasetsPath, 1.0, 1.0, trainingDatasets, testingDatasets);
+			for (int i = 1; i <= 10; i++) {
+				if(testingDomains.contains(i)) {
+					datasetsPath = String.format("%s/%s/%s", datasetsRoot, domain, i);
+					datasetReader.addDataset(datasetsPath, 1.0, testingDatasets);
+				}
 			}
 		}
 		
 		resultsPath = String.format("%s/results", resultsRoot);
-		modelHandler.createNewContext();
-		
-		clock.start();
-		modelHandler.loadClassifiers(false);
-		modelHandler.loadClassifiers(true);
+
 		System.out.println("Starting testing");
+		clock.start();
+		//testingDatasets = testingDatasets.subList(0,500);
 		for (Dataset testingDataset : testingDatasets) {
-			modelHandler.refineHintsUnlabelledDataset(testingDataset);
+			modelHandler.refineHintsUnlabelledDataset(testingDataset, useMulticlass);
 			checkHints(testingDataset);
-			System.out.println("");
-			modelHandler.saveResults(testingDataset, String.format("%s/results/%s-domains/1-iterations", resultsPath, numberOfDomains));
+			modelHandler.saveResults(testingDataset, String.format("%s/results/1-iterations", resultsPath));
+			modelHandler.refineHintsOnce(testingDataset);
+			checkHints(testingDataset);
+			System.out.println("Finished dataset");
+			modelHandler.saveResults(testingDataset, String.format("%s/results/2-iterations", resultsPath));
 		}
 		clock.stop();
-		FileUtils.createCSV(String.format("%s/results/%s-domains/1-iterations/applicationTime.csv", resultsPath, numberOfDomains));
-		FileUtils.addLine(String.format("%s/results/%s-domains/1-iterations/applicationTime.csv", resultsPath, numberOfDomains), clock.getCPUTime());
+		FileUtilsCust.createCSV(String.format("%s/results/1-iterations/applicationTime.csv", resultsPath));
+		FileUtilsCust.addLine(String.format("%s/results/1-iterations/applicationTime.csv", resultsPath), clock.getCPUTime());
 		modelHandler.resetFolderCount();
-		for (int i = 0; i < 1; i++) {
+		for (int i = 0; i < 0; i++) {
 			for (Dataset testingDataset : testingDatasets) {
 				modelHandler.refineHintsOnce(testingDataset);
 				checkHints(testingDataset);
 				System.out.println("");
 				//System.out.println("finished dataset");
-				modelHandler.saveResults(testingDataset, String.format("%s/results/%s-domains/%s-iterations", resultsPath, numberOfDomains, i+2));
+				modelHandler.saveResults(testingDataset, String.format("%s/results/%s-iterations", resultsPath, i+2));
 			}
 			clock.stop();
-			FileUtils.createCSV(String.format("%s/results/%s-domains/%s-iterations/applicationTime.csv", resultsPath, numberOfDomains, i+2));
-			FileUtils.addLine(String.format("%s/results/%s-domains/%s-iterations/applicationTime.csv", resultsPath, numberOfDomains, i+2), clock.getCPUTime());
+			FileUtilsCust.createCSV(String.format("%s/results/%s-iterations/applicationTime.csv", resultsPath, i+2));
+			FileUtilsCust.addLine(String.format("%s/results/%s-iterations/applicationTime.csv", resultsPath, i+2), clock.getCPUTime());
 			modelHandler.resetFolderCount();
 		}
+		/*
+		//CONVERGENCE
+		for (Dataset testingDataset : testingDatasets) {
+			modelHandler.classifySlotsUntilConvergence(testingDataset, 7);
+			checkHints(testingDataset);
+			//System.out.println("finished dataset");
+			modelHandler.saveResults(testingDataset, String.format("%s/results/%s-domains/fold-%s/", resultsPath, numberOfDomains, testingFoldNumber));
+		}
+		*/
 		
 		modelHandler.closeContext();
 	}

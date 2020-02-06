@@ -82,7 +82,7 @@ public class TokenDensity extends Feature<Attribute> {
 	public String toString() {
 		String result;
 		
-		result = String.format("Token density for pattern %s", patternString.replace(',', ';'));
+		result = String.format("Token density of pattern %s", patternString.replace(',', ';'));
 		
 		return result;
 	}

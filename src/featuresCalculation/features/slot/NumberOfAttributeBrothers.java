@@ -45,4 +45,12 @@ public class NumberOfAttributeBrothers extends Feature<Slot>{
 		
 		return result;
 	}
+
+	public String toString(){
+		String result;
+
+		result = "Number of attributes among siblings";
+
+		return result;
+	}
 }

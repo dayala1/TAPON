@@ -61,4 +61,12 @@ public class Hint_DensityOfBrothers extends Feature<Slot>{
 		
 		return result;
 	}
+
+	public String toString(){
+		String result;
+
+		result =String.format("Density of siblings with label %s", className);
+
+		return result;
+	}
 }

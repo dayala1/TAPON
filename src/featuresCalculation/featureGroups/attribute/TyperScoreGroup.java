@@ -22,13 +22,11 @@ public class TyperScoreGroup extends FeaturesGroup<Attribute>{
 	public void initialize() throws IOException {
 
 		TyperScore typerScore;
-		
-		for (String slotClass : getAttributeClasses()) {
-			typerScore = new TyperScore();
-			typerScore.setClassName(slotClass);
-			typerScore.setIndexPath(getIndexPath());
-			addFeature(typerScore);
-		}
+
+		typerScore = new TyperScore();
+		typerScore.setClassesConfiguration(classesConfiguration);
+		typerScore.setIndexPath(getIndexPath());
+		addFeature(typerScore);
 	}
 
 }

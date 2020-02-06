@@ -1,5 +1,7 @@
 package featuresCalculation;
 
+import utils.ClockMonitor;
+
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collections;
@@ -19,8 +21,7 @@ public abstract class FeaturesGroup<T extends Featurable> implements Serializabl
 	//Properties-----------------------------------------------------
 	
 	private IterationType iterationType;
-	private Set<String> recordClasses;
-	private Set<String> attributeClasses;
+	protected ClassesConfiguration classesConfiguration;
 	private Set<Feature<T>> features;
 	private String indexPath;
 
@@ -33,27 +34,19 @@ public abstract class FeaturesGroup<T extends Featurable> implements Serializabl
 		
 		this.iterationType = iterationType;
 	}
-
-	public Set<String> getRecordClasses() {
-		return recordClasses;
+	
+	public void setClassesConfiguration(ClassesConfiguration classesConfiguration){
+		assert classesConfiguration != null;
+		
+		this.classesConfiguration = classesConfiguration;
 	}
 
-	public void setRecordClasses(Set<String> recordClasses) {
-		assert recordClasses != null;
-		assert !recordClasses.isEmpty();
-		
-		this.recordClasses = recordClasses;
+	public Set<String> getRecordClasses() {
+		return classesConfiguration.getRecordClasses();
 	}
 
 	public Set<String> getAttributeClasses() {
-		return attributeClasses;
-	}
-
-	public void setAttributeClasses(Set<String> attributeClasses) {
-		assert attributeClasses != null;
-		assert !attributeClasses.isEmpty();
-		
-		this.attributeClasses = attributeClasses;
+		return classesConfiguration.getAttributeClasses();
 	}
 	
 	public Set<Feature<T>> getFeatures() {
@@ -78,6 +71,7 @@ public abstract class FeaturesGroup<T extends Featurable> implements Serializabl
 		assert feature != null;
 		
 		features.add(feature);
+		feature.setFeaturesGroup(this);
 	}	
 	
 	//Interface methods----------------------------------------------
@@ -85,19 +79,16 @@ public abstract class FeaturesGroup<T extends Featurable> implements Serializabl
 	public FeaturesVector apply(T featurable) {
 		assert featurable != null;
 		assert iterationType != null;
-		assert recordClasses != null;
-		assert attributeClasses != null;
+		assert classesConfiguration != null;
 		
 		FeaturesVector result;
 		FeatureValue featureValue;
 		
 		result = new FeaturesVector();
-		
 		for (Feature<T> feature : features) {
 			featureValue = feature.apply(featurable);
 			result.addFeatureValue(featureValue);
 		}
-		
 		return result;
 	}
 	

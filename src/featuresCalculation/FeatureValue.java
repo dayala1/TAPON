@@ -5,7 +5,7 @@ public class FeatureValue {
 	//Properties------------------------------------------------------
 	
 	private Feature<?> feature;
-	private Double value;
+	private Object value;
 	private Featurable featurable;
 
 	public Feature<?> getFeature() {
@@ -19,11 +19,11 @@ public class FeatureValue {
 		feature.addFeatureValue(this);
 	}
 
-	public Double getValue() {
+	public Object getValue() {
 		return value;
 	}
 
-	public void setValue(Double value) {
+	public void setValue(Object value) {
 		this.value = value;
 	}
 	

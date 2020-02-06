@@ -18,7 +18,7 @@ import com.google.common.collect.Table;
 
 import dataset.Slot;
 import jersey.repackaged.com.google.common.collect.Sets;
-import utils.FileUtils;
+import utils.FileUtilsCust;
 
 public class ConfusionMatrixDriverTwoFolds {
 	
@@ -66,13 +66,13 @@ public class ConfusionMatrixDriverTwoFolds {
 		slotClasses.add("none");
 		maxNumIterations = 20;
 		resultsFilePath = String.format("%s/experimentalResults.csv", datasetsRootPath);
-		FileUtils.createCSV(resultsFilePath);
+		FileUtilsCust.createCSV(resultsFilePath);
 		rows = Lists.newArrayList();
 		header = Lists.newArrayList();
 		header.add("TECH");
 		numSlots = 0;
 		for(int j2=1; j2<=1; j2++) {
-			for(int j = 2; j <= 2; j++) {
+			for(int j = j2+1; j <= 5; j++) {
 				for (int i = 1; i <= maxNumIterations; i++) {
 					row = Lists.newArrayList();
 					finalTechName =techName;
@@ -215,9 +215,9 @@ public class ConfusionMatrixDriverTwoFolds {
 		header.add("MICRO-RECALL");
 		header.add("MACRO-PRECISION");
 		header.add("MACRO-RECALL");
-		FileUtils.addLine(resultsFilePath, header);
+		FileUtilsCust.addLine(resultsFilePath, header);
 		for (List<String> fileRow : rows) {
-			FileUtils.addLine(resultsFilePath, fileRow);
+			FileUtilsCust.addLine(resultsFilePath, fileRow);
 		}
 	}
 	

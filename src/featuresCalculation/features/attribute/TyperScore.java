@@ -3,7 +3,11 @@ package featuresCalculation.features.attribute;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TreeMap;
 
+import featuresCalculation.ClassesConfiguration;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.core.UnicodeWhitespaceAnalyzer;
 import org.apache.lucene.document.Document;
@@ -25,65 +29,66 @@ import featuresCalculation.FeatureValue;
 public class TyperScore extends Feature<Attribute>{
 
 	//Properties-----------------------------------------------------
-	
-	private String className;
+
 	private String indexPath;
 
-	public String getClassName() {
-		return className;
+	private ClassesConfiguration classesConfiguration;
+
+	public ClassesConfiguration getClassesConfiguration() {
+		return classesConfiguration;
 	}
 
-	public void setClassName(String className) throws IOException {
-		assert className != null;
-
-		this.className = className;
+	public void setClassesConfiguration(ClassesConfiguration classesConfiguration) {
+		this.classesConfiguration = classesConfiguration;
 	}
-	
+
 	public void setIndexPath(String indexPath) throws IOException {
 		assert indexPath != null;
 
 		this.indexPath = indexPath;
+		Path path = Paths.get(indexPath);
+		Directory directory = FSDirectory.open(path);
+		indexReader = DirectoryReader.open(directory);
+		indexSearcher = new IndexSearcher(indexReader);
+		analyzer = new UnicodeWhitespaceAnalyzer();
+		queryBuilder = new SimpleQueryParser(analyzer, "value");
 	}
-	
+
+	private DirectoryReader indexReader;
+	private IndexSearcher indexSearcher;
+	private Analyzer analyzer;
+	private QueryBuilder queryBuilder;
+
+
 	//Interface methods----------------------------------------------
 	
 	@Override
 	public FeatureValue apply(Attribute element) {
 		assert element != null;
-		assert className != null;
+		assert classesConfiguration != null;
 		
 		FeatureValue result;
 		String attributeValue;
-		Path path;
-		Directory directory;
-		IndexReader indexReader;
-		IndexSearcher indexSearcher;
-		Analyzer analyzer;
-		QueryBuilder queryBuilder;
 		TopDocs topDocs;
 		ScoreDoc[] scoreDocs;
 		String queryText;
 		Query query;
-		String field;
 		Document document;
 		String attributeClass;
-		double value;
+		Map<String, Float> value;
 		
-		value = 0.0;
+		value = new TreeMap<>();
+		for(String className:classesConfiguration.getAttributeClasses()){
+			value.put(className, 0.0f);
+		}
 		
 		try {
 			attributeValue = element.getValue().toLowerCase().replaceAll("and", " ").replaceAll("or", " ").replaceAll("\\+", "").replaceAll("\\-", "");
 			if(!(attributeValue.equals("") || attributeValue.equals(" "))) {
-				path = Paths.get(indexPath);
-				directory = FSDirectory.open(path);
-				indexReader = DirectoryReader.open(directory);
-				indexSearcher = new IndexSearcher(indexReader);
-				analyzer = new UnicodeWhitespaceAnalyzer();
+
 				//analyzer = new StandardAnalyzer();
-				field = "value";
 				queryText = attributeValue;
-				queryBuilder = new SimpleQueryParser(analyzer, field);
-				query = queryBuilder.createPhraseQuery(field, queryText);
+				query = queryBuilder.createPhraseQuery("value", queryText);
 				if(query==null){
 					System.out.println(attributeValue);
 					System.out.println("Something is wrong...");
@@ -93,16 +98,15 @@ public class TyperScore extends Feature<Attribute>{
 				for (ScoreDoc scoreDoc : scoreDocs) {
 					document = indexReader.document(scoreDoc.doc);
 					attributeClass = document.get("attributeClass");
-					if (attributeClass.equals(String.format("document-%s", className))) {
-						value = scoreDoc.score;
-						break;
+					if(attributeClass.startsWith("document-")) {
+						attributeClass = attributeClass.substring(9);
+						value.put(attributeClass, scoreDoc.score);
 					}
 				}
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
 		result = new FeatureValue();
 		result.setFeature(this);
 		result.setValue(value);
@@ -114,9 +118,11 @@ public class TyperScore extends Feature<Attribute>{
 	
 	public String toString() {
 		String result;
-		
-		result = String.format("Typer score for class %s", className);
-		
+		result = "";
+		for(String className:classesConfiguration.getAttributeClasses()){
+			result += String.format("|Dynamic-Typer score for class %s", className);
+		}
+		result = result.substring(1);
 		return result;
 	}
 }

@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -20,8 +19,7 @@ import com.google.common.collect.Table;
 
 import dataset.Slot;
 import jersey.repackaged.com.google.common.collect.Maps;
-import jersey.repackaged.com.google.common.collect.Sets;
-import utils.FileUtils;
+import utils.FileUtilsCust;
 
 public class ConfusionMatrixDriverTwoFoldsAlternative {
 	
@@ -83,20 +81,20 @@ public class ConfusionMatrixDriverTwoFoldsAlternative {
 		double cosineSimilarity;
 		int numTests;
 		
-		datasetsRootPath = "C:/Users/Boss/Documents/RandomForestTwoFolds/results/results/10-domains";
+		datasetsRootPath = "C:/Users/Boss/Documents/RandomForestTwoFoldsNoDifferences/results/results/10-domains";
 		classesPath = "C:/Users/Boss/Documents/RandomForestNew/classifiersAndTables/modelTables/10-domains/fold-1/classes.json";
-		techName = "Our proposal";
-		addIterations = true;
+		techName = "Neville";
+		addIterations = false;
 		slotClasses = Lists.newArrayList();
 		addClasses(slotClasses, classesPath);
 		//slotClasses.add("none");
-		maxNumIterations = 2;
+		maxNumIterations = 10;
 		resultsFilePath = String.format("%s/experimentalResults.csv", datasetsRootPath);
 		similarityFilePath = String.format("%s/similarity.csv", datasetsRootPath);
 		globalConfusionFilePath = String.format("%s/confusion.csv", datasetsRootPath);
-		//FileUtils.createCSV(resultsFilePath);
-		FileUtils.createCSV(similarityFilePath);
-		FileUtils.createCSV(globalConfusionFilePath);
+		FileUtilsCust.createCSV(resultsFilePath);
+		FileUtilsCust.createCSV(similarityFilePath);
+		FileUtilsCust.createCSV(globalConfusionFilePath);
 		rows = Lists.newArrayList();
 		header = Lists.newArrayList();
 		header.add("TECH");
@@ -129,7 +127,7 @@ public class ConfusionMatrixDriverTwoFoldsAlternative {
 		for(int j2=1; j2<=9; j2++) {
 			for(int j = j2+1; j <= 10; j++) {
 				numTests++;
-				for (int i = 1; i <= maxNumIterations; i++) {
+				for (int i = 10; i <= maxNumIterations; i++) {
 					
 					confusionMatrix = HashBasedTable.create();
 					precisions = Maps.newHashMap();
@@ -300,11 +298,11 @@ public class ConfusionMatrixDriverTwoFoldsAlternative {
 			*/
 		//System.out.println(numSlots);
 			}
-		}/*
-		FileUtils.addLine(resultsFilePath, header);
+		}
+		FileUtilsCust.addLine(resultsFilePath, header);
 		for (List<String> fileRow : rows) {
-			FileUtils.addLine(resultsFilePath, fileRow);
-		}*/
+			FileUtilsCust.addLine(resultsFilePath, fileRow);
+		}
 		for (String slotClass1 : slotClasses) {
 			for (String slotClass2 : slotClasses) {
 				int vectorSize = slotClasses.size();
@@ -341,10 +339,10 @@ public class ConfusionMatrixDriverTwoFoldsAlternative {
 			}
 		}
 		for (List<String> fileRow : rowsSimilarity) {
-			FileUtils.addLine(similarityFilePath, fileRow);
+			FileUtilsCust.addLine(similarityFilePath, fileRow);
 		}
 		for (List<String> fileRow : rowsConfusion) {
-			FileUtils.addLine(globalConfusionFilePath, fileRow);
+			FileUtilsCust.addLine(globalConfusionFilePath, fileRow);
 		}
 	}
 	

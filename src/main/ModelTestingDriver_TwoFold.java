@@ -1,22 +1,11 @@
 package main;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 import dataset.Dataset;
 import dataset.Record;
 import dataset.Slot;
 import featuresCalculation.DatasetFeaturesCalculator;
 import featuresCalculation.FeaturesGroup;
-import featuresCalculation.featureGroups.attribute.CharacterDensityGroup;
-import featuresCalculation.featureGroups.attribute.CommonPrefixSuffixLengthGroup;
-import featuresCalculation.featureGroups.attribute.EditDistanceGroup;
-import featuresCalculation.featureGroups.attribute.NumberOfOccurrencesGroup;
-import featuresCalculation.featureGroups.attribute.NumericValueGroup;
-import featuresCalculation.featureGroups.attribute.TokenDensityGroup;
-import featuresCalculation.featureGroups.attribute.TyperScoreGroup;
+import featuresCalculation.featureGroups.attribute.*;
 import featuresCalculation.featureGroups.featurable.Hint_MinimumTreeDistanceGroup;
 import featuresCalculation.featureGroups.record.Hint_DensityOfSlotGroup;
 import featuresCalculation.featureGroups.record.Hint_NumberOfSlotsRecordGroup;
@@ -28,7 +17,9 @@ import featuresCalculation.featureGroups.slot.OliveiraDaSilvaGroup;
 import model.randomForest.ModelHandlerRandomForest;
 import utils.ClockMonitor;
 import utils.DatasetReader;
-import utils.FileUtils;
+import utils.FileUtilsCust;
+
+import java.util.*;
 
 public class ModelTestingDriver_TwoFold {
 	
@@ -140,9 +131,9 @@ public class ModelTestingDriver_TwoFold {
 			for (int i = 1; i < 11; i++) {
 				datasetsPath = String.format("%s/Datasets/%s/%s",datasetsRoot, domain, i);
 				if (i == testingFoldNumber || i == testingFoldNumber2) {
-					datasetReader.addDataset(datasetsPath, 1.0, 1.0, trainingDatasets, testingDatasets);
+					datasetReader.addDataset(datasetsPath, 1.0, trainingDatasets);
 				} else {
-					datasetReader.addDataset(datasetsPath, 1.0, 0.0, trainingDatasets, testingDatasets);
+					datasetReader.addDataset(datasetsPath, 1.0, testingDatasets);
 				}
 			}
 		}
@@ -153,10 +144,10 @@ public class ModelTestingDriver_TwoFold {
 		modelHandler.setHintsFeaturableFeaturesGroups(hintFeaturableFeaturesGroups);
 		modelHandler.setHintsSlotFeaturesGroups(hintSlotFeaturesGroups);
 		clock.start();
-		modelHandler.trainModel(0.0, trainingDatasets);
+		modelHandler.trainModel(trainingDatasets, new HashMap<>());
 		clock.stop();
-		FileUtils.createCSV(String.format("%s/results/%s-domains/fold-%s-%s/trainingTime.csv", resultsPath, numberOfDomains, testingFoldNumber, testingFoldNumber2));
-		FileUtils.addLine(String.format("%s/results/%s-domains/fold-%s-%s/trainingTime.csv", resultsPath, numberOfDomains, testingFoldNumber, testingFoldNumber2), clock.getCPUTime());
+		FileUtilsCust.createCSV(String.format("%s/results/%s-domains/fold-%s-%s/trainingTime.csv", resultsPath, numberOfDomains, testingFoldNumber, testingFoldNumber2));
+		FileUtilsCust.addLine(String.format("%s/results/%s-domains/fold-%s-%s/trainingTime.csv", resultsPath, numberOfDomains, testingFoldNumber, testingFoldNumber2), clock.getCPUTime());
 		modelHandler.createNewContext();
 		
 		clock.start();
@@ -169,8 +160,8 @@ public class ModelTestingDriver_TwoFold {
 			modelHandler.saveResults(testingDataset, String.format("%s/results/%s-domains/fold-%s-%s/1-iterations", resultsPath, numberOfDomains, testingFoldNumber, testingFoldNumber2));
 		}
 		clock.stop();
-		FileUtils.createCSV(String.format("%s/results/%s-domains/fold-%s-%s/1-iterations/applicationTime.csv", resultsPath, numberOfDomains, testingFoldNumber, testingFoldNumber2));
-		FileUtils.addLine(String.format("%s/results/%s-domains/fold-%s-%s/1-iterations/applicationTime.csv", resultsPath, numberOfDomains, testingFoldNumber, testingFoldNumber2), clock.getCPUTime());
+		FileUtilsCust.createCSV(String.format("%s/results/%s-domains/fold-%s-%s/1-iterations/applicationTime.csv", resultsPath, numberOfDomains, testingFoldNumber, testingFoldNumber2));
+		FileUtilsCust.addLine(String.format("%s/results/%s-domains/fold-%s-%s/1-iterations/applicationTime.csv", resultsPath, numberOfDomains, testingFoldNumber, testingFoldNumber2), clock.getCPUTime());
 		modelHandler.resetFolderCount();
 		for (int i = 0; i < 3; i++) {
 			for (Dataset testingDataset : testingDatasets) {
@@ -180,8 +171,8 @@ public class ModelTestingDriver_TwoFold {
 				modelHandler.saveResults(testingDataset, String.format("%s/results/%s-domains/fold-%s-%s/%s-iterations", resultsPath, numberOfDomains, testingFoldNumber, testingFoldNumber2, i+2));
 			}
 			clock.stop();
-			FileUtils.createCSV(String.format("%s/results/%s-domains/fold-%s-%s/%s-iterations/applicationTime.csv", resultsPath, numberOfDomains, testingFoldNumber, testingFoldNumber2, i+2));
-			FileUtils.addLine(String.format("%s/results/%s-domains/fold-%s-%s/%s-iterations/applicationTime.csv", resultsPath, numberOfDomains, testingFoldNumber, testingFoldNumber2, i+2), clock.getCPUTime());
+			FileUtilsCust.createCSV(String.format("%s/results/%s-domains/fold-%s-%s/%s-iterations/applicationTime.csv", resultsPath, numberOfDomains, testingFoldNumber, testingFoldNumber2, i+2));
+			FileUtilsCust.addLine(String.format("%s/results/%s-domains/fold-%s-%s/%s-iterations/applicationTime.csv", resultsPath, numberOfDomains, testingFoldNumber, testingFoldNumber2, i+2), clock.getCPUTime());
 			modelHandler.resetFolderCount();
 		}
 		/*

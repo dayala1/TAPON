@@ -105,7 +105,8 @@ public class Hint_MinimumTreeDistance extends Feature<Featurable>{
 			featureValuesMap = featuresVector.getFeatureValues();
 			featureValue = featureValuesMap.get(this);
 			if (featureValue != null) {
-				familiarValue = featureValue.getValue();
+				//TODO esto da error con caracteristicas no numericas
+				familiarValue = (Double)featureValue.getValue();
 				if(familiarValue >= 0) {
 					result = Math.min(result, familiarValue);
 				}
@@ -118,7 +119,7 @@ public class Hint_MinimumTreeDistance extends Feature<Featurable>{
 	public String toString() {
 		String result;
 		
-		result = String.format("Minimum tree distance to hint %s", slotClass);
+		result = String.format("Minimum tree distance to label %s", slotClass);
 		
 		return result;
 	}

@@ -58,7 +58,7 @@ public class NumberOfOccurrences extends Feature<Attribute> {
 	public String toString() {
 		String result;
 		
-		result = String.format("Number of occurrences for pattern %s", patternString.replace(',', ';'));
+		result = String.format("Number of occurrences of pattern %s", patternString.replace(',', ';'));
 		
 		return result;
 	}

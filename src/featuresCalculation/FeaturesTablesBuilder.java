@@ -1,20 +1,29 @@
 package featuresCalculation;
+
+import au.com.bytecode.opencsv.CSVWriter;
+import dataset.ClassesPair;
+import dataset.Dataset;
+import dataset.Record;
+import dataset.Slot;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
+import org.json.simple.parser.ParseException;
+import org.spark_project.guava.collect.Lists;
+import utils.FileUtilsCust;
+
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import org.json.simple.parser.ParseException;
-
-import dataset.Dataset;
-import dataset.Record;
-import dataset.Slot;
-import utils.FileUtils;
-
 public class FeaturesTablesBuilder implements Serializable{
-	
+	private static CSVPrinter csvPrinterDatasets;
+	private static CSVPrinter csvPrinterAttributes;
+	private static CSVPrinter csvPrinterRecords;
+	private static CSVPrinter csvPrinterClassesPairs;
 	private static final long serialVersionUID = 1295466241822143370L;
 	
 	//Constructors---------------------------------------------------
@@ -33,14 +42,15 @@ public class FeaturesTablesBuilder implements Serializable{
 	
 	//Interface methods----------------------------------------------
 	
-	public void initialize(String outputFolder, Set<Feature<?>> datasetFeatures, Set<Feature<?>> recordFeatures, Set<Feature<?>> attributeFeatures) throws IOException, ParseException {
+	public void initialize(String outputFolder, Set<Feature<?>> datasetFeatures, Set<Feature<?>> recordFeatures, Set<Feature<?>> attributeFeatures, Set<Feature<?>> classesPairsFeatures) throws IOException, ParseException {
 		//List<FeaturesTable> datasetTables;
 		//List<FeaturesTable> recordTables;
 		//List<FeaturesTable> attributeTables;
 		//FeaturesTable featuresTable;
 		File outFile;
-		String featureName;
+		List<String> featureNames;
 		List<String> features;
+		FileWriter fileWriter;
 
 		/*
 		datasetTables = new ArrayList<FeaturesTable>();
@@ -58,94 +68,77 @@ public class FeaturesTablesBuilder implements Serializable{
 		if (!outFile.exists()) {
 			outFile.mkdirs();
 		}
-		
+
 		outFile = new File(String.format("%s/datasets.csv", outputFolder));
-		if(!outFile.exists()) {
-			FileUtils.createCSV(String.format("%s/datasets.csv", outputFolder));
+		if(!outFile.exists() && datasetFeatures != null) {
+			outFile.getParentFile().mkdirs();
+			fileWriter = new FileWriter(outFile, true);
+			csvPrinterDatasets = new CSVPrinter(fileWriter, CSVFormat.DEFAULT.withRecordSeparator("\n").withDelimiter('|'));
 			features = new ArrayList<String>();
 			features.add("name");
 			for (Feature feature : datasetFeatures) {
-				featureName = feature.toString();
-				features.add(featureName);
+				featureNames = Lists.newArrayList(feature.toString().split("\\|"));
+				for(String featureName:featureNames) {
+					features.add(featureName);
+				}
 			}
-			FileUtils.addLine(String.format("%s/datasets.csv", outputFolder), features);
+			csvPrinterDatasets.printRecord(features);
 		}
 		
 		outFile = new File(String.format("%s/records.csv", outputFolder));
-		if (!outFile.exists()) {
-			FileUtils.createCSV(String.format("%s/records.csv", outputFolder));
+		if (!outFile.exists() && recordFeatures != null) {
+			outFile.getParentFile().mkdirs();
+			fileWriter = new FileWriter(outFile, true);
+			csvPrinterRecords = new CSVPrinter(fileWriter, CSVFormat.DEFAULT.withRecordSeparator("\n").withDelimiter('|'));
 			features = new ArrayList<String>();
 			features.add("name");
 			for (Feature feature : recordFeatures) {
-				featureName = feature.toString();
-				features.add(featureName);
-			}
-			features.add("class");
-			FileUtils.addLine(String.format("%s/records.csv", outputFolder), features);
-		}
-		
-		/*
-		for (String recordClass : recordClasses) {
-			featuresTable = new FeaturesTable();
-			featuresTable.setName(recordClass);
-			recordTables.add(featuresTable);
-			outFile = new File(String.format("resources/%s/records/%s.csv", outputFolder, recordClass));
-			if (!outFile.exists()) {
-				createCSV(String.format("resources/%s/records/%s.csv", outputFolder, recordClass));
-				features = new ArrayList<String>();
-				features.add("name");
-				for (Feature feature : recordFeatures) {
-					featureName = feature.toString();
+				featureNames = Lists.newArrayList(feature.toString().split("\\|"));
+				for(String featureName:featureNames) {
 					features.add(featureName);
 				}
-				features.add("class");
-				features.add("slotClass");
-				addLine(String.format("resources/%s/records/%s.csv", outputFolder, recordClass), features);
 			}
-			
-		}*/
+			features.add("class");
+			csvPrinterRecords.printRecord(features);
+		}
 		
 		outFile = new File(String.format("%s/attributes.csv", outputFolder));
-		if (!outFile.exists()) {
-			FileUtils.createCSV(String.format("%s/attributes.csv", outputFolder));
+		if (!outFile.exists() && attributeFeatures != null) {
+			outFile.getParentFile().mkdirs();
+			fileWriter = new FileWriter(outFile, true);
+			csvPrinterAttributes = new CSVPrinter(fileWriter, CSVFormat.DEFAULT.withRecordSeparator("\n").withDelimiter('|'));
 			features = new ArrayList<String>();
 			features.add("name");
 			for (Feature feature : attributeFeatures) {
-				featureName = feature.toString();
-				features.add(featureName);
-			}
-			features.add("class");
-			FileUtils.addLine(String.format("%s/attributes.csv", outputFolder), features);
-		}
-		
-		/*
-		for (String attributeClass : attributeClasses) {
-			featuresTable = new FeaturesTable();
-			featuresTable.setName(attributeClass);
-			attributeTables.add(featuresTable);
-			outFile = new File(String.format("resources/%s/attributes/%s.csv", outputFolder, attributeClass));
-			if (!outFile.exists()) {
-				createCSV(String.format("resources/%s/attributes/%s.csv", outputFolder, attributeClass));
-				features = new ArrayList<String>();
-				features.add("name");
-				for (Feature feature : attributeFeatures) {
-					featureName = feature.toString();
+				featureNames = Lists.newArrayList(feature.toString().split("\\|"));
+				for(String featureName:featureNames) {
+					System.out.println(featureName);
 					features.add(featureName);
 				}
-				features.add("class");
-				features.add("slotClass");
-				addLine(String.format("resources/%s/attributes/%s.csv", outputFolder, attributeClass), features);
 			}
-		}*/
-		
-		/*
-		tablesMap.put("dataset", datasetTables);
-		tablesMap.put("records", recordTables);
-		tablesMap.put("attributes", attributeTables);
-		*/
+			features.add("class");
+			csvPrinterAttributes.printRecord(features);
+		}
+
+		outFile = new File(String.format("%s/classesPairs.csv", outputFolder));
+		if (!outFile.exists() && classesPairsFeatures != null) {
+			outFile.getParentFile().mkdirs();
+			fileWriter = new FileWriter(outFile, true);
+			csvPrinterClassesPairs = new CSVPrinter(fileWriter, CSVFormat.DEFAULT.withRecordSeparator("\n").withDelimiter('|'));
+			features = new ArrayList<String>();
+			features.add("class1");
+			features.add("class2");
+			for (Feature feature : classesPairsFeatures) {
+				featureNames = Lists.newArrayList(feature.toString().split("\\|"));
+				for(String featureName:featureNames) {
+					features.add(featureName);
+				}
+			}
+			csvPrinterClassesPairs.printRecord(features);
+		}
 	}
 	
-	public void addVector(Featurable featurable, FeaturesVector featuresVector, String outputFolder){
+	public void addVector(Featurable featurable, FeaturesVector featuresVector, String outputFolder) throws IOException {
 		List<FeaturesTable> datasetTables;
 		List<FeaturesTable> recordTables;
 		List<FeaturesTable> attributeTables;
@@ -154,6 +147,7 @@ public class FeaturesTablesBuilder implements Serializable{
 		FeaturesTable featuresTable;
 		Dataset dataset;
 		Slot slot;
+		ClassesPair classesPair;
 		String slotClass;
 		String folder;
 		File folderFile;
@@ -161,6 +155,8 @@ public class FeaturesTablesBuilder implements Serializable{
 		File[] files;
 		String fileName;
 		String className;
+		String class1;
+		String class2;
 		
 		//datasetTables = tablesMap.get("datasets");
 		//recordTables = tablesMap.get("records");
@@ -168,67 +164,44 @@ public class FeaturesTablesBuilder implements Serializable{
 		
 		if(featurable instanceof Dataset){
 			lineValues = new ArrayList<String>();
-			lineValues.add(featurable.getName());
+			lineValues.add(featurable.getName().replace(',', '-'));
 			lineValues.addAll(featuresVector.getRawValues());
-			FileUtils.addLine(String.format("%s/datasets.csv", outputFolder), lineValues);
-			dataset = (Dataset)featurable;
-			featuresTable = new FeaturesTable();
-			featuresTable.setName("datasets");
-			featuresVector.setFeaturable(dataset);
-			featuresTable.addFeaturesVector(featuresVector);
-			//datasetTables.add(featuresTable);
-		} else {
+			csvPrinterDatasets.printRecord(lineValues);
+		} else if (featurable instanceof Slot) {
 			slot = (Slot)featurable;
 			slotClass = slot.getSlotClass();
 			
 			//Selection of the list that will be used
-			if(slot instanceof Record) {
-				//featuresTables = recordTables;
-				folder = "records";
-			} else {
-				//featuresTables = attributeTables;
-				folder = "attributes";
-			}
 			
 			//Addition of the new vector to each Table
-			file = new File(String.format("%s/%s.csv", outputFolder, folder));
 			featuresVector.setVectorClass(slotClass);
 		    lineValues = new ArrayList<String>();
-			lineValues.add(featurable.getName());
+			lineValues.add(featurable.getName().replace(',', '-'));
 			lineValues.addAll(featuresVector.getRawValues());
-			FileUtils.addLine(String.format("%s/%s.csv", outputFolder, folder), lineValues);
-			
-			/*
-			folderFile = new File(String.format("resources/%s/%s", outputFolder, folder));
-			files = folderFile.listFiles();
-			for (File file : files) {
-		    	featuresVector = featuresVector.clone();
-		    	fileName = file.getName();
-		    	className = fileName.substring(0, fileName.length()-4);
-		    	if(className.equals(slotClass)){
-					featuresVector.setVectorClass("YES");
-				}else{
-					featuresVector.setVectorClass("NO");
-				}
-		    	lineValues = new ArrayList<String>();
-				lineValues.add(featurable.getName());
-				lineValues.addAll(featuresVector.getRawValues());
-				lineValues.add(slotClass);
-				addLine(String.format("resources/%s/%s/%s", outputFolder, folder, fileName), lineValues);
+
+			if(slot instanceof Record) {
+				csvPrinterRecords.printRecord(lineValues);
+			} else {
+				csvPrinterAttributes.printRecord(lineValues);
 			}
-			*/
-			
-			//Ancient tables creation code. Could be useful in the future
-			/*for(FeaturesTable storedFeaturesTable : featuresTables){
-				featuresVector = featuresVector.clone();
-				if(storedFeaturesTable.getName().equals(slotClass)){
-					featuresVector.setVectorClass("YES");
-				}else{
-					featuresVector.setVectorClass("NO");
-				}
-				storedFeaturesTable.addFeaturesVector(featuresVector);
-			}*/
+		} else {
+			classesPair = (ClassesPair)featurable;
+			class1 = classesPair.getClass1();
+			class2 = classesPair.getClass2();
+			lineValues = new ArrayList<String>();
+			lineValues.add(class1);
+			lineValues.add(class2);
+			List<String> rawValues = featuresVector.getRawValues();
+			rawValues = rawValues.subList(0, rawValues.size()-1);
+			lineValues.addAll(rawValues);
+			csvPrinterClassesPairs.printRecord(lineValues);
 		}
+	}
+
+	public void closeWriters() throws IOException {
+		csvPrinterDatasets.close();
+		csvPrinterRecords.close();
+		csvPrinterAttributes.close();
 	}
 	
 	//Ancillary methods----------------------------------------------

@@ -2,9 +2,11 @@ package dataset;
 
 import java.util.LinkedHashMap;
 
+import org.json.simple.JSONObject;
+
 import featuresCalculation.Featurable;
 
-public class Slot extends Featurable{
+public abstract class Slot extends Featurable{
 	
 	//Properties------------------------------------------------------
 	
@@ -15,7 +17,8 @@ public class Slot extends Featurable{
 	LinkedHashMap<String, Double> hintsRanking;
 	private Integer startIndex;
 	private Integer endIndex;
-	
+	private String source;
+
 	public Dataset getDataset() {
 		return dataset;
 	}
@@ -39,8 +42,7 @@ public class Slot extends Featurable{
 	}
 
 	public void setRecord(Record record) {
-		assert record != null;
-		
+
 		this.record = record;
 	}
 	
@@ -88,6 +90,14 @@ public class Slot extends Featurable{
 		this.hintsRanking = hintsRanking;
 	}
 
+	public String getSource() {
+		return source;
+	}
+
+	public void setSource(String source) {
+		this.source = source;
+	}
+
 	//Interface methods------------------------------------------------
 
 	public Featurable getParent() {
@@ -123,4 +133,5 @@ public class Slot extends Featurable{
 		return true;
 	}
 	
+	public abstract JSONObject getJSONObject();
 }

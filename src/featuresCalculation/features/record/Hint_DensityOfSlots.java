@@ -56,7 +56,7 @@ public class Hint_DensityOfSlots extends Feature<Record>{
 	public String toString() {
 		String result;
 		
-		result = String.format("Density of slots with hint %s", className);
+		result = String.format("Density of children slots with label %s", className);
 		
 		return result;
 	}

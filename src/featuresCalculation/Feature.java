@@ -21,6 +21,7 @@ public abstract class Feature<T extends Featurable> extends Observable<FeatureVa
 	//Properties-----------------------------------------------------
 	
 	private Set<FeatureValue> featureValues;
+	private FeaturesGroup featuresGroup;
 	
 	public void addFeatureValue(FeatureValue featureValue){
 		assert featureValue != null;
@@ -38,5 +39,13 @@ public abstract class Feature<T extends Featurable> extends Observable<FeatureVa
 		for (Observer<FeatureValue> observer : getObservers()) {
 			observer.update(featureValue);
 		}
+	}
+
+	public FeaturesGroup getFeaturesGroup() {
+		return featuresGroup;
+	}
+
+	public void setFeaturesGroup(FeaturesGroup featuresGroup) {
+		this.featuresGroup = featuresGroup;
 	}
 }

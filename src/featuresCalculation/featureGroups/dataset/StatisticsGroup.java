@@ -135,7 +135,7 @@ public class StatisticsGroup extends FeaturesGroup<Dataset> implements Observer<
 		//Dataset feature values are ignored, since there is ony one value per dataset
 		if (featurable instanceof Slot) {
 			feature = info.getFeature();
-			value = info.getValue();
+			value = (Double)info.getValue();
 			slot = (Slot)info.getFeaturable();
 			slotClass = slot.getSlotClass();
 			slotClassMap = featureSlotClassMap.get(feature);

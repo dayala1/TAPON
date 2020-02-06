@@ -139,7 +139,7 @@ public class CommonPrefixLength extends Feature<Attribute>{
 	public String toString() {
 		String result;
 		
-		result = String.format("Average common prefix length for class %s", className);
+		result = String.format("Dynamic-Average common prefix length for class %s", className);
 		
 		return result;
 	}

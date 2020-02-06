@@ -47,7 +47,7 @@ public class DatasetReader {
 		
 		visitedElements = new HashSet<String>();
 		file = new File(rootDir+"/"+extractionID);
-		rootElements = FileUtils.searchInFile("^"+seedRecord+"\\('(.*?)'\\).", file, 1);
+		rootElements = FileUtilsCust.searchInFile("^"+seedRecord+"\\('(.*?)'\\).", file, 1);
 		for (String rootElement : rootElements) {
 			jsonArray.add(processElement(rootElement, extractionID, file, datasetRoot, textFilesRoot));
 		}
@@ -58,7 +58,7 @@ public class DatasetReader {
 
 	}
 	
-	public Dataset loadJSONObject(JSONObject jsonObject) throws FileNotFoundException, IOException {
+	public Dataset loadJSONObject(JSONObject jsonObject, String source) {
 		assert jsonObject != null;
 		
 		Dataset result;
@@ -66,6 +66,7 @@ public class DatasetReader {
 		JSONArray children;
 		JSONObject child;
 		Slot slot;
+		String hint;
 		
 		result = new Dataset();
 		if(jsonObject.containsKey("name")){
@@ -75,6 +76,7 @@ public class DatasetReader {
 			elementCount ++;
 		}
 		result.setName(name);
+		result.setSource(source);
 		children = (JSONArray)jsonObject.get("children");
 		for (int i = 0; i < children.size(); i++) {
 			child = (JSONObject)children.get(i);
@@ -98,6 +100,7 @@ public class DatasetReader {
 		List<File> testingFiles;
 		Integer numAll;
 		Integer numTesting;
+
 
 		folderFile = new File(folderPath);
 		files = folderFile.listFiles();
@@ -127,16 +130,14 @@ public class DatasetReader {
 		fileReader = new FileReader(datasetFile);
 		jsonParser = new JSONParser();
 		jsonObject = (JSONObject)jsonParser.parse(fileReader);
-		dataset = loadJSONObject(jsonObject);
-		
+		dataset = loadJSONObject(jsonObject, null);
+
 		return dataset;
 	}
 	
-	public void addDataset(String folderPath, Double fractionAll, Double fractionTesting, List<Dataset> trainingDatasets, List<Dataset> testingDatasets) throws IOException, ParseException {
+	public void addDataset(String folderPath, Double fractionAll, List<Dataset> trainingDatasets) throws IOException, ParseException {
 		assert folderPath != null;
-		assert fractionTesting != null;
 		assert trainingDatasets != null;
-		assert testingDatasets != null;
 		
 		File folderFile;
 		File[] files;
@@ -149,35 +150,29 @@ public class DatasetReader {
 		Integer numAll;
 		Integer numTesting;
 		Dataset dataset;
+		File source;
 
 		jsonParser = new JSONParser();
 		folderFile = new File(folderPath);
+		source = folderFile.getParentFile();
 		files = folderFile.listFiles();
 		filesList = Arrays.asList(files);
 		numAll = (int)(files.length*fractionAll);
-		numTesting = (int)(numAll*fractionTesting);
-		
-		testingFiles = filesList.subList(0, numTesting);
-		trainingFiles = filesList.subList(numTesting, numAll);
+
+		trainingFiles = filesList.subList(0, numAll);
 		
 		//Dataset storing
 		for (File file : trainingFiles) {
 			fileReader = new FileReader(file);
 			jsonObject = (JSONObject)jsonParser.parse(fileReader);
-			dataset = loadJSONObject(jsonObject);
+			dataset = loadJSONObject(jsonObject, source.toString());
 			trainingDatasets.add(dataset);
 		}
-		
-		for (File file : testingFiles) {
-			fileReader = new FileReader(file);
-			jsonObject = (JSONObject)jsonParser.parse(fileReader);
-			dataset = loadJSONObject(jsonObject);
-			testingDatasets.add(dataset);
-		}
+
 	}
 	
 	//Ancillary methods----------------------------------------------
-	public Slot loadJSONObjectSlot(JSONObject jsonObject) throws FileNotFoundException, IOException {
+	public Slot loadJSONObjectSlot(JSONObject jsonObject) {
 		assert jsonObject != null;
 		
 		Slot result;
@@ -187,7 +182,6 @@ public class DatasetReader {
 		JSONObject child;
 		Slot slot;
 		
-		slotClass = (String)jsonObject.get("class");
 		if (!jsonObject.containsKey("children")) {
 			result = new Attribute();
 			((Attribute)result).setValue((String)jsonObject.get("textualValue"));
@@ -207,14 +201,21 @@ public class DatasetReader {
 		if(jsonObject.containsKey("endIndex")) {
 			result.setEndIndex((Integer)jsonObject.get("endIndex"));
 		}
+		
+		if(jsonObject.containsKey("hint")) {
+			result.setHint((String)jsonObject.get("hint"));
+		}
 		if(jsonObject.containsKey("name")){
 			name = (String)jsonObject.get("name");
 		} else {
 			name = elementCount.toString();
 			elementCount ++;
 		}
+		if(jsonObject.containsKey("class")){
+			slotClass = (String)jsonObject.get("class");
+			result.setSlotClass(slotClass);
+		}
 		result.setName(name);
-		result.setSlotClass(slotClass);
 		
 		return result;
 	}
@@ -249,7 +250,7 @@ public class DatasetReader {
 			extractionFile = new File(String.format("%s/%s", directory.getAbsolutePath(), extractionID));
 			regexp =String.format("^%s\\('%s'\\)", directory.getName(), id);
 			try{
-				foundElement = FileUtils.searchInFile(regexp, extractionFile, 0);
+				foundElement = FileUtilsCust.searchInFile(regexp, extractionFile, 0);
 				if(!foundElement.isEmpty()){
 					elementClass = directory.getName();
 				}
@@ -260,15 +261,15 @@ public class DatasetReader {
 		result.put("class", elementClass);
 		result.put("id", id);
 		//regexp = String.format("^?:%% XPATH: %s = (.*?)$", id);
-		//regexpResults = FileUtils.searchInFile(regexp, infoSource, 1);
+		//regexpResults = FileUtilsCust.searchInFile(regexp, infoSource, 1);
 		//if (regexpResults.isEmpty()) {
 		regexp = String.format(".*?%s.*?, xpath = (.*?)$", id);
-		regexpResults = FileUtils.searchInFile(regexp, infoSource, 1);
+		regexpResults = FileUtilsCust.searchInFile(regexp, infoSource, 1);
 		//}
 		path = regexpResults.get(0);
 		result.put("path", path);
 		regexp = String.format("^child(?:ren)?\\('%s', ?'(.*?)'\\).", id);
-		children = FileUtils.searchInFile(regexp, infoSource, 1);
+		children = FileUtilsCust.searchInFile(regexp, infoSource, 1);
 		//Check that children have been found
 		if(!children.isEmpty()){
 			jsonArray = new JSONArray();
@@ -369,7 +370,7 @@ public class DatasetReader {
 			regexp = String.format(".*?xpath: %s ---- text: (.*?)(attribute|$)", path);
 			//System.out.println(String.format("Using regexp to find textual value: %s", regexp));
 			try{
-				result = FileUtils.searchInFile(regexp, textFile, 1).get(0);
+				result = FileUtilsCust.searchInFile(regexp, textFile, 1).get(0);
 			} catch (Exception e) {
 				System.out.println(String.format("There was a problem with attribute of class %s in extraction %s. Expected path: %s", elementClass, extractionID, path));
 				result = "NOT FOUND";

@@ -51,6 +51,7 @@ public class EditDistance extends Feature<Attribute>{
 
 	public void setClassName(String className) throws IOException {
 		assert className != null;
+		assert !className.isEmpty();
 		
 		Path path;
 		Directory directory;
@@ -133,7 +134,7 @@ public class EditDistance extends Feature<Attribute>{
 	public String toString() {
 		String result;
 		
-		result = String.format("Average edit distance for class %s", className);
+		result = String.format("Dynamic-Average edit distance for class %s", className);
 		
 		return result;
 	}
